@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from aoty_commons import AotyCommons as Aoty
+from aoty.aoty_commons import AotyCommons as Aoty
 
 
 input_file = open('input/input_lists.txt', mode='r', encoding="utf-8")

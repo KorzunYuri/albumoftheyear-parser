@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from aoty_commons import AotyCommons as Aoty
+from aoty.aoty_commons import AotyCommons as Aoty
 from commons import *
 
 import re

@@ -1,4 +1,4 @@
-from aotyaprser import *
+from aoty.aotyparser import *
 
 import time
 import random
