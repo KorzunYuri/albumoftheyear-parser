@@ -5,9 +5,9 @@ import random
 
 search_page_parser = AotySearchPageParser()
 
-input_file = open('albums.txt', mode='r', encoding="utf-8")
-error_file = open('errors.txt', mode='w', encoding="utf-8")
-output_file = open('output.txt', mode='w', encoding="utf-8")
+input_file  = open('input/input_reviews.txt', mode='r', encoding="utf-8")
+error_file  = open('errors/errors_reviews.txt', mode='w', encoding="utf-8")
+output_file = open('output/output_reviews.txt', mode='w', encoding="utf-8")
 for l in input_file:
     line = l.replace('\n', '')
     try:

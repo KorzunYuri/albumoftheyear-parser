@@ -1,30 +1,10 @@
 from bs4 import BeautifulSoup
 
-import requests
+from aoty_commons import AotyCommons as Aoty
+from commons import *
+
 import re
 from difflib import SequenceMatcher
-import time
-import random
-
-__aoty_base_url__ = 'https://www.albumoftheyear.org/'
-
-
-def __get_headers_for_https__():
-    return {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"}
-
-
-def __filter_list__(lst):
-    return list(filter(lambda item: item is not None, lst))
-
-
-def get_content_from_url(url):
-    time.sleep(random.randint(1, 2))
-    headers = __get_headers_for_https__()
-    print("calling {url}".format(url=url))
-    response = requests.get(url=url, headers=headers)
-    # response = urllib.request.urlopen(url).read()
-    return response.content.decode('utf-8')
 
 
 class AotySearchPageParser(object):
@@ -33,7 +13,7 @@ class AotySearchPageParser(object):
 
         #   search by artist and release
         url = self.get_search_link(artist, release)
-        release_divs = self.__get_release_divs__(get_content_from_url(url))
+        release_divs = self.__get_release_divs__(Aoty.get_content_from_url(url))
         release_info = self.__find_best_match__(release_divs, artist, release)
 
         if release_info is None:
@@ -41,16 +21,16 @@ class AotySearchPageParser(object):
             release_info_by_release  = \
                 self.__find_best_match__( \
                     self.__get_release_divs__( \
-                        get_content_from_url( \
+                        Aoty.get_content_from_url( \
                             self.get_search_link(release=release))) \
                     , artist, release)
             release_info_by_artist   = \
                 self.__find_best_match__( \
                     self.__get_release_divs__( \
-                        get_content_from_url( \
+                        Aoty.get_content_from_url( \
                             self.get_search_link(artist=artist))) \
                     , artist, release)
-            candidates = __filter_list__([release_info_by_release, release_info_by_artist])
+            candidates = filter_list([release_info_by_release, release_info_by_artist])
             if len(candidates) == 1:
                 release_info = candidates[0]
             elif len(candidates) > 1:
@@ -63,28 +43,28 @@ class AotySearchPageParser(object):
                 return {
                     'artist_name': release_info['artist_name'],
                     'release_name': release_info['release_name'],
-                    'release_link': __aoty_base_url__ + release_title_div.parent['href']
+                    'release_link': Aoty.get_base_url() + release_title_div.parent['href']
                 }
         return None
 
     def __get_release_divs__(self, content):
         soup = BeautifulSoup(content, 'html.parser')
-        return soup.body.find_all('div', attrs={'class': 'albumBlock', 'data-type': 'lp'})
+        return soup.body.find_all('div', attrs={'class': 'albumBlock'})
 
     def __prepare_search_token__(self, token):
         return token.replace(' ', '+')\
             .replace('&', '%26')
 
     def get_search_link(self, artist=None, release=None):
-        tokens = __filter_list__([artist, release])
+        tokens = filter_list([artist, release])
         params = map(self.__prepare_search_token__, tokens)
-        return __aoty_base_url__ + "/search/?q={params}".format(params='+'.join(params))
+        return Aoty.get_base_url() + "/search/?q={params}".format(params='+'.join(params))
 
     def __find_best_match__(self, release_block_divs, artist_name, release_name):
         if len(release_block_divs) == 1:
             return self.__get_release_info__(release_block_divs[0], artist_name, release_name)
         else:
-            print(f"found {len(release_block_divs)} LPs for {artist_name} - {release_name}")
+            print(f"found {len(release_block_divs)} releases for {artist_name} - {release_name}")
             best_score = 0
             best_match = None
             for release_block_div in release_block_divs:
@@ -126,7 +106,7 @@ class AotyReleaseInfo(object):
     __content__ = None
 
     def __init__(self, release_link):
-        self.__content__ = get_content_from_url(url=release_link)
+        self.__content__ = Aoty.get_content_from_url(url=release_link)
 
     def get_reviews(self):
         reviews = []
@@ -144,7 +124,7 @@ class AotyReleaseInfo(object):
                 if author_div is not None:
                     author_name_a = author_div.find('a', attrs={'href': re.compile('^/critic/.*')})
                     review_info['author'] = author_name_a.text
-                    review_info['author_link'] = __aoty_base_url__ + author_name_a.attrs['href']
+                    review_info['author_link'] = Aoty.get_base_url() + author_name_a.attrs['href']
 
                 #   review link
                 review_links_div = review_div.find('div', attrs={'class': 'albumReviewLinks'})
