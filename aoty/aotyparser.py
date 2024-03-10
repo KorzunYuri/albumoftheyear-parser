@@ -138,3 +138,45 @@ class AotyReleaseInfo(object):
                 reviews.append(review_info)
 
         return reviews
+
+
+class AotyListsListsParser(object):
+
+    def get_lists_by_critic(self, lists_list_link):
+        content = Aoty.get_content_from_url(url=lists_list_link)
+        soup = BeautifulSoup(content, 'html.parser')
+        sections = soup.find('div', attrs={'id': 'centerContent'}).find_all('div', attrs={'class': 'section'})
+        lists = []
+        for s in sections:
+            tmp_lists = self.__get_lists_from_section__(s)
+            for lst in tmp_lists:
+                # lst['year'] = lst['list_label'] if self.__is_year_list_section__(s) else ''
+                lists.append(lst)
+        return lists
+
+
+
+    def __is_year_list_section__(self, section):
+        return section.find('div', attrs={'class': 'sectionHeading'}).getText() == "Year End Lists"
+
+    def __get_lists_from_section__(self, section):
+        lists = []
+        list_divs = section.find_all('div', attrs={'class': 'criticListBlockContainer album'})
+        for list_div in list_divs:
+            a = list_div.find('div', attrs={'class': 'criticListBlockTitle'}).find('a')
+            aoty_link = Aoty.get_base_url() + a['href']
+            list_label = a.getText()
+            content = Aoty.get_content_from_url(url=aoty_link)
+            soup = BeautifulSoup(content, 'html.parser')
+            header_div = soup .find('div', attrs={'class': 'listHeader'})
+            list_name = header_div.find('h1', attrs={'class': 'headline'}).getText()
+            original_link_a = header_div.find('a')
+            original_link = original_link_a['href'] if original_link_a is not None else ''
+            lists.append({
+                'aoty_link':        aoty_link,
+                'list_name':        list_name,
+                'list_label':       list_label,
+                'original_link':    original_link
+            })
+        return lists
+
